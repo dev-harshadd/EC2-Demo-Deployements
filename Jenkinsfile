@@ -9,6 +9,11 @@ pipeline {
         }
 
         stage('Build with Maven') {
+            options {
+                // Set a timeout specific to the Maven build stage (e.g., 15 minutes)
+                // This is often better than a pipeline-level timeout.
+                timeout(time: 15, unit: 'MINUTES')
+            }
             steps {
                 sh 'mvn clean package -DskipTests'
             }
