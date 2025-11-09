@@ -1,36 +1,28 @@
 # ===============================
 # Stage 1 — Build JAR with Maven
 # ===============================
-FROM maven:3.8.8-openjdk-17 AS builder
-
-# Set working directory
+FROM maven:3.8.8-eclipse-temurin-17 AS builder
 WORKDIR /app
 
-# Copy Maven descriptor first (to cache dependencies)
+# Copy the pom first to leverage caching
 COPY pom.xml .
-
-# Pre-download dependencies (helps speed up builds)
 RUN mvn dependency:go-offline
 
-# Copy the rest of the source code
+# Copy source code and build
 COPY src ./src
-
-# Build the application (skip tests for faster CI)
 RUN mvn clean package -DskipTests
 
 # ===============================
 # Stage 2 — Run Spring Boot JAR
 # ===============================
-FROM openjdk:17-jdk-slim
-
+FROM eclipse-temurin:17-jdk-jammy
 WORKDIR /app
 
-# Copy only the built JAR from previous stage
+# Copy only the final JAR from builder stage
 COPY --from=builder /app/target/MicroService-0.0.1-SNAPSHOT.jar app.jar
 
-# Expose application port
+# Expose your app port
 EXPOSE 8082
 
-# Start the application
+# Start the app
 ENTRYPOINT ["java", "-jar", "app.jar"]
-
